@@ -29,6 +29,18 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito",system-ui,sans-serif;font-size:16px;line-height:1.5}
 .awning{height:22px;background:repeating-linear-gradient(90deg,var(--berry) 0 28px,var(--stripe) 28px 56px);
   border-bottom-left-radius:14px 12px;border-bottom-right-radius:14px 12px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.auth-screen{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(160deg,var(--bg),#F8F3DD)}
+.auth-card{width:min(100%,420px);background:var(--card);border:2px solid var(--line);border-radius:22px;padding:28px 22px;box-shadow:0 10px 40px rgba(31,42,90,.08)}
+.auth-kicker{margin:0 0 8px;color:var(--berry);font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.auth-card h2{font-family:"Fredoka",sans-serif;font-size:clamp(30px,6vw,38px);margin:0 0 12px}
+.auth-card p{margin:0 0 18px;color:var(--muted)}
+.auth-card form{display:grid;gap:12px}
+.auth-card input{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:600 16px "Nunito",sans-serif}
+.auth-card button{border:0;border-radius:12px;background:var(--berry);color:#fff;font:800 16px "Nunito",sans-serif;padding:12px 18px;cursor:pointer}
+.auth-card button:hover{filter:brightness(.96)}
+.auth-error{min-height:20px;margin:0;color:#b42318;font-weight:700;font-size:14px}
+.hidden{display:none !important}
 header{padding:22px 18px 8px;max-width:760px;margin:0 auto}
 h1{font-family:"Fredoka",sans-serif;font-weight:700;font-size:clamp(30px,8vw,46px);line-height:1.05;margin:0 0 4px}
 .sub{font-family:"Fredoka",sans-serif;font-size:18px;color:var(--berry);margin:0 0 10px}
@@ -75,28 +87,43 @@ footer{max-width:760px;margin:0 auto;padding:0 18px 36px;color:var(--muted);font
 </style>
 </head>
 <body>
-<div class="awning" aria-hidden="true"></div>
-<header>
-  <div class="lang" role="group" aria-label="Language / Sprache">
-    <button type="button" id="b-en" aria-pressed="true">English</button>
-    <button type="button" id="b-de" aria-pressed="false">Deutsch</button>
-  </div>
-  <h1>La Chasse aux Gourmandises</h1>
-  <p class="sub" id="sub"></p>
-  <p class="how" id="how"></p>
-</header>
-<div class="prog">
-  <div class="prog-in">
-    <div class="prog-top"><span class="rank" id="rank"></span><span class="count" id="count"></span></div>
-    <div class="bar" role="progressbar" id="barwrap" aria-valuemin="0"><div class="fill" id="fill"></div></div>
-    <div class="chips" id="chips" role="group"></div>
+<div id="auth-screen" class="auth-screen" aria-live="polite">
+  <div class="auth-card">
+    <p class="auth-kicker">Protected</p>
+    <h2>Unlock the hunt</h2>
+    <p>Enter the password to access the French treats scavenger hunt.</p>
+    <form id="auth-form" novalidate>
+      <label class="sr-only" for="password-input">Password</label>
+      <input id="password-input" name="password" type="password" autocomplete="current-password" placeholder="Enter password" required>
+      <button type="submit">Open the page</button>
+      <p id="auth-error" class="auth-error" role="alert" aria-live="assertive"></p>
+    </form>
   </div>
 </div>
-<main id="main"></main>
-<footer>
-  <p id="tip"></p>
-  <button class="reset" id="reset" type="button"></button>
-</footer>
+<div id="app-shell" class="hidden">
+  <div class="awning" aria-hidden="true"></div>
+  <header>
+    <div class="lang" role="group" aria-label="Language / Sprache">
+      <button type="button" id="b-en" aria-pressed="true">English</button>
+      <button type="button" id="b-de" aria-pressed="false">Deutsch</button>
+    </div>
+    <h1>La Chasse aux Gourmandises</h1>
+    <p class="sub" id="sub"></p>
+    <p class="how" id="how"></p>
+  </header>
+  <div class="prog">
+    <div class="prog-in">
+      <div class="prog-top"><span class="rank" id="rank"></span><span class="count" id="count"></span></div>
+      <div class="bar" role="progressbar" id="barwrap" aria-valuemin="0"><div class="fill" id="fill"></div></div>
+      <div class="chips" id="chips" role="group"></div>
+    </div>
+  </div>
+  <main id="main"></main>
+  <footer>
+    <p id="tip"></p>
+    <button class="reset" id="reset" type="button"></button>
+  </footer>
+</div>
 <script>
 var CATS = [{"id": "boul", "fr": "À la boulangerie", "en": "At the bakery", "de": "In der Bäckerei", "note_en": "Breakfast and goûter favorites", "note_de": "Lieblinge zum Frühstück und zum Goûter (Nachmittagssnack)", "bg": "#FFE9B8"}, {"id": "pat", "fr": "À la pâtisserie", "en": "At the pastry shop", "de": "In der Konditorei", "note_en": "The fancy cakes in the glass window", "note_de": "Die feinen Törtchen und Küchlein in der Vitrine", "bg": "#FBD3E3"}, {"id": "resto", "fr": "Au restaurant", "en": "At the restaurant", "de": "Im Restaurant", "note_en": "Look at the menu under “Desserts”", "note_de": "Schau auf der Speisekarte unter „Desserts“", "bg": "#D7E3FF"}, {"id": "snack", "fr": "En balade", "en": "Snacks on the go", "de": "Snacks für unterwegs", "note_en": "Street food, cafés and picnic bites", "note_de": "Streetfood, Café-Happen und Picknick-Snacks", "bg": "#D9F2DA"}, {"id": "conf", "fr": "À la confiserie", "en": "Candy and sweets", "de": "Süßigkeiten und Getränke", "note_en": "Bonbons, chocolate and drinks", "note_de": "Bonbons, Schokolade und Getränke", "bg": "#EBD8FA"}];
 var RAW = [["boul", "🥐", "Croissant", "Croissant", "Hörnchen (Croissant)", "kwah-SOHN", "kroa-ßONG", "Croissant means “crescent,” the curved shape of the moon. It grew from an Austrian pastry called the kipferl and became a Paris star in the 1800s.", "Croissant bedeutet „Mondsichel“, nach der gebogenen Form des Mondes. Es stammt vom österreichischen Kipferl ab und wurde im 19. Jahrhundert in Paris berühmt."], ["boul", "🍫", "Pain au chocolat", "Chocolate bread", "Schokoladenbrötchen", "pan oh sho-ko-LAH", "päng o scho-ko-LA", "Two sticks of dark chocolate hide inside. In southwest France people call it a chocolatine instead, and they will happily argue about which name is right!", "Innen verstecken sich zwei Stangen dunkler Schokolade. Im Südwesten Frankreichs heißt es „Chocolatine“, und die Leute streiten gern darüber, welcher Name richtig ist!"], ["boul", "🥖", "Baguette", "Baguette (long loaf)", "Baguette (Stangenbrot)", "bah-GET", "ba-GÄTT", "Baguette means “stick” or “wand.” In 2022 UNESCO honored French baguette know-how as world cultural heritage. The crunchy end, le quignon, is often nibbled on the walk home.", "Baguette bedeutet „Stab“ oder „Zauberstab“. 2022 hat die UNESCO die französische Baguette-Handwerkskunst zum Kulturerbe erklärt. Das knusprige Ende, „le quignon“, wird oft schon auf dem Heimweg geknabbert."], ["boul", "🌀", "Pain aux raisins", "Raisin swirl", "Rosinenschnecke", "pan oh ray-ZAN", "päng o rä-SÄNG", "A spiral of buttery dough with custard and raisins. Unroll it slowly as you eat it like a snail shell.", "Eine Spirale aus Butterteig mit Vanillecreme und Rosinen. Roll sie beim Essen langsam auf, wie ein Schneckenhaus."], ["boul", "🍎", "Chausson aux pommes", "Apple turnover", "Apfeltasche", "sho-SOHN oh pom", "scho-ßONG o pomm", "Un chausson is a slipper! The folded half-moon of pastry looks like a cozy slipper stuffed with apples.", "„Un chausson“ ist ein Hausschuh! Die gefaltete Halbmond-Teigtasche sieht aus wie ein kuscheliger Pantoffel, gefüllt mit Äpfeln."], ["boul", "🧈", "Brioche", "Brioche (rich sweet bread)", "Brioche (feines Hefegebäck)", "bree-OHSH", "bri-OSCH", "Soft bread made with lots of butter and eggs. A famous story says Queen Marie-Antoinette told people to “eat brioche,” but historians think she never said it.", "Weiches Brot mit viel Butter und Eiern. Eine berühmte Geschichte erzählt, Königin Marie-Antoinette habe gesagt, die Leute sollten „Brioche essen“, doch Historiker glauben, dass sie das nie gesagt hat."], ["boul", "🌴", "Palmier", "Palm-tree cookie", "Schweinsohr (Palmier)", "pal-mee-AY", "pal-mi-E", "Palmier means palm tree. The crispy sugar-and-pastry swirl looks like a palm leaf. Some people call them “elephant ears.”", "Palmier heißt Palme. Das knusprige Zucker-Blätterteig-Gebäck sieht aus wie ein Palmwedel. In Deutschland nennt man es auch „Schweinsohr“."], ["boul", "☁️", "Chouquette", "Little cream-puff ball", "Mini-Windbeutel", "shoo-KET", "schu-KÄTT", "A tiny puff topped with crunchy pearl sugar. “Chou” means cabbage, because the round puffs look like little cabbages. French grandparents also say “mon chou” as a pet name!", "Ein winziger Brandteig-Ball mit knusprigem Hagelzucker. „Chou“ heißt Kohl, weil die runden Bällchen wie kleine Kohlköpfe aussehen. Französische Großeltern sagen auch „mon chou“ als Kosenamen!"], ["boul", "🐚", "Madeleine", "Madeleine (shell cake)", "Madeleine (Muschelkuchen)", "mad-LEN", "mad-LÄN", "A soft butter cake baked in a shell-shaped mold. The writer Marcel Proust dipped one in tea and it brought back so many memories that he wrote about it in a famous book.", "Ein weicher Butterkuchen, gebacken in einer Muschelform. Der Schriftsteller Marcel Proust tauchte eines in Tee, und es weckte so viele Erinnerungen, dass er in einem berühmten Buch darüber schrieb."], ["boul", "🥮", "Kouign-amann", "Butter cake from Brittany", "Butterkuchen aus der Bretagne", "queen ah-MAHN", "kwin a-MAN", "In the Breton language, kouign means cake and amann means butter. It is caramelized, flaky and gloriously buttery.", "Auf Bretonisch heißt „kouign“ Kuchen und „amann“ Butter. Er ist karamellisiert, blättrig und herrlich buttrig."], ["boul", "🍞", "Pain d’épices", "Spice bread (gingerbread)", "Gewürzbrot (Lebkuchen-Art)", "pan day-PEESS", "päng de-PIß", "Honey and warm spices make this chewy loaf. It has been baked in France for centuries, and Dijon and Reims are famous for it.", "Honig und warme Gewürze machen diesen saftigen Laib aus. Er wird in Frankreich seit Jahrhunderten gebacken, besonders berühmt sind Dijon und Reims dafür."], ["boul", "👑", "Galette des Rois", "King cake", "Dreikönigskuchen", "gah-LET day RWAH", "ga-LÄTT de RWA", "Eaten in January. A tiny figurine called a fève is hidden inside. Whoever finds it in their slice wears the paper crown and is king or queen for the day!", "Wird im Januar gegessen. Darin steckt eine kleine Figur, die „Fève“. Wer sie in seinem Stück findet, bekommt die Papierkrone und ist König oder Königin für einen Tag!"], ["pat", "🌈", "Macaron", "Macaron (sandwich cookie)", "Macaron (Mandel-Doppelkeks)", "mah-kah-ROHN", "ma-ka-RONG", "Two crisp almond cookies with a creamy filling. It is a macaron with one “o,” not the coconut macaroon. Look for every color of the rainbow in the shop window.", "Zwei knusprige Mandelplätzchen mit cremiger Füllung. Nicht zu verwechseln mit dem Kokos-Makrönchen. Such im Schaufenster alle Regenbogenfarben!"], ["pat", "⚡", "Éclair", "Éclair", "Éclair (Liebesknochen)", "ay-KLAIR", "e-KLÄR", "Éclair means “flash of lightning.” One idea is that people gobble it down as fast as a lightning flash. Chocolate and coffee are the classic flavors.", "Éclair bedeutet „Blitz“. Eine Erklärung: Man verschlingt es blitzschnell. Klassische Sorten sind Schokolade und Kaffee."], ["pat", "👩", "Religieuse", "The nun cake", "Die Nonne (Windbeutel-Törtchen)", "ruh-lee-JUHZ", "rö-li-SCHÖS", "One round cream puff sits on a bigger one, like a nun in her habit. La religieuse is literally “the nun.”", "Ein kleiner runder Windbeutel sitzt auf einem größeren, wie eine Nonne in ihrer Tracht. „La religieuse“ heißt wörtlich „die Nonne“."], ["pat", "📚", "Mille-feuille", "Thousand-layer pastry", "Tausendblätter-Schnitte", "meel FUH-ee", "mil-FÖJ", "It means “a thousand leaves.” Crisp pastry layers alternate with vanilla cream. Hint: pressing it down with a fork makes the cream squirt out the sides!", "Es bedeutet „tausend Blätter“. Knusprige Blätterteig-Schichten wechseln sich mit Vanillecreme ab. Tipp: Drückst du mit der Gabel darauf, quillt die Creme an den Seiten heraus!"], ["pat", "🚲", "Paris-Brest", "Bicycle-wheel pastry", "Fahrradrad-Törtchen", "pa-REE brest", "pa-RI brest", "A ring of choux pastry with hazelnut cream, shaped like a bicycle wheel. It was invented in 1910 to celebrate the Paris to Brest cycling race.", "Ein Kranz aus Brandteig mit Haselnusscreme, geformt wie ein Fahrradrad. Erfunden 1910 zu Ehren des Radrennens Paris–Brest."], ["pat", "🍓", "Fraisier", "Strawberry cake", "Erdbeertorte", "fray-ZYAY", "fre-SI-E", "La fraise is a strawberry. This sponge cake has cream and a ring of whole strawberries around the edge.", "„La fraise“ ist die Erdbeere. Diese Biskuittorte hat Creme und einen Kranz ganzer Erdbeeren am Rand."], ["pat", "🍋", "Tarte au citron", "Lemon tart", "Zitronentarte", "tart oh see-TROHN", "tart o ßi-TRONG", "A buttery crust filled with tangy lemon cream. Some have a fluffy meringue hat on top.", "Ein Mürbeteigboden mit spritziger Zitronencreme. Manche tragen einen luftigen Baiser-Hut."], ["pat", "🎭", "Opéra", "Opera cake", "Opéra-Torte", "oh-pay-RAH", "o-pe-RA", "Thin layers of almond sponge, coffee cream and chocolate. Its name is probably a nod to the Paris Opera, and the neat layers look like a stage.", "Dünne Schichten Mandelbiskuit, Kaffeecreme und Schokolade. Der Name ist vermutlich eine Verbeugung vor der Pariser Oper, und die ordentlichen Schichten sehen aus wie eine Bühne."], ["pat", "⛪", "Saint-Honoré", "Cream-puff crown cake", "Saint-Honoré-Torte (Windbeutel-Krone)", "san oh-no-RAY", "ßäng o-no-RE", "Named for Saint Honoré, the patron saint of bakers. Look for little caramel-dipped cream puffs circling the top.", "Benannt nach dem heiligen Honoratus, dem Schutzpatron der Bäcker. Oben sitzt ein Kranz kleiner, in Karamell getauchter Windbeutel."], ["pat", "🍐", "Tarte aux poires", "Pear tart", "Birnentarte", "tart oh PWAR", "tart o PWAR", "Pears and almond cream baked in a crust. Bourdaloue is a famous version named after a street in Paris.", "Birnen und Mandelcreme, in einem Teigboden gebacken. Die berühmte Variante „Bourdaloue“ ist nach einer Straße in Paris benannt."], ["resto", "🔥", "Crème brûlée", "“Burnt cream” custard", "„Verbrannte Creme“", "krem broo-LAY", "krämm brü-LE", "Creamy vanilla custard with a thin layer of caramelized sugar. Tap the top with your spoon: the sugar cracks like ice on a puddle!", "Cremige Vanillecreme mit einer dünnen Schicht karamellisiertem Zucker. Klopf mit dem Löffel darauf: Der Zucker knackt wie Eis auf einer Pfütze!"], ["resto", "🍫", "Mousse au chocolat", "Chocolate mousse", "Schokoladenmousse", "moos oh sho-ko-LAH", "muß o scho-ko-LA", "Mousse means “foam.” Whipped egg whites and chocolate make it light as a cloud. Many families make their own at home.", "Mousse heißt „Schaum“. Aufgeschlagenes Eiweiß und Schokolade machen sie leicht wie eine Wolke. Viele Familien machen sie selbst."], ["resto", "🥞", "Crêpe Suzette", "Flaming orange crêpe", "Flambierter Orangen-Crêpe", "krep soo-ZET", "kräpp sü-SÄTT", "A thin pancake in orange sauce that waiters sometimes set on fire at your table. One legend says a chef invented it by accident for a prince’s dinner in the 1890s.", "Ein dünner Pfannkuchen in Orangensauce, den Kellner manchmal am Tisch anzünden. Einer Legende nach hat ein Koch ihn in den 1890ern aus Versehen für das Dinner eines Prinzen erfunden."], ["resto", "🏝️", "Île flottante", "Floating island", "Schwimmende Insel", "eel flo-TAHNT", "il flo-TANT", "A cloud of soft meringue floats in a pool of vanilla custard, like an island on a sea. Often drizzled with caramel.", "Eine Wolke aus weichem Baiser schwimmt in Vanillesauce, wie eine Insel im Meer. Oft mit Karamell beträufelt."], ["resto", "🍨", "Profiteroles", "Cream puffs with ice cream", "Windbeutel mit Eis", "pro-fee-troll", "pro-fit-ROLL", "Little puffs filled with vanilla ice cream, then covered in warm chocolate sauce poured at the table.", "Kleine Windbeutel mit Vanilleeis, übergossen mit warmer Schokoladensauce, oft direkt am Tisch."], ["resto", "🌋", "Fondant au chocolat", "Molten chocolate cake", "Schokoküchlein mit flüssigem Kern", "fohn-DAHN oh sho-ko-LAH", "fong-DANG o scho-ko-LA", "Fondant means “melting.” Cut into it and warm chocolate lava flows out.", "Fondant heißt „schmelzend“. Schneide hinein, und warme Schokoladenlava fließt heraus."], ["resto", "🍒", "Clafoutis", "Cherry custard cake", "Kirschauflauf", "kla-foo-TEE", "kla-fu-TI", "A country dessert from the Limousin region. Cherries are baked in a thick pancake-like batter, and some cooks leave the pits in for extra flavor.", "Ein Landdessert aus der Region Limousin. Kirschen werden in dickem Pfannkuchenteig gebacken, manche Köche lassen die Kerne für mehr Aroma drin."], ["resto", "🍐", "Poire belle Hélène", "Pear with chocolate sauce", "Birne Helene", "pwar bel ay-LEN", "pwar bäl e-LÄN", "A poached pear, vanilla ice cream and hot chocolate. It was named after a 1860s comic opera, La Belle Hélène.", "Eine pochierte Birne mit Vanilleeis und heißer Schokolade. Benannt nach der komischen Oper „La Belle Hélène“ aus den 1860ern."], ["resto", "🍚", "Riz au lait", "Rice pudding", "Milchreis", "ree oh LAY", "ri o LÄ", "Rice slowly cooked in sweet milk. A comfort food in France, often served with a spoonful of caramel.", "Reis, langsam in süßer Milch gekocht. Ein Wohlfühlessen in Frankreich, oft mit einem Löffel Karamell."], ["resto", "🍞", "Pain perdu", "“Lost bread” (French toast)", "„Verlorenes Brot“ (Armer Ritter)", "pan pair-DOO", "päng pär-DÜ", "Old bread was “lost” until cooks soaked it in egg and milk and fried it. A tasty way to save bread!", "Altes Brot galt als „verloren“, bis Köche es in Ei und Milch tränkten und brieten. Eine leckere Art, Brot zu retten!"], ["resto", "☕", "Café gourmand", "Coffee with mini desserts", "Kaffee mit Mini-Desserts", "ka-FAY goor-MAHN", "ka-FE gur-MANG", "A coffee served with a tasting plate of tiny desserts. A gourmand is someone who loves to eat. Kids can share the plate!", "Ein Kaffee mit einem Probierteller winziger Desserts. Ein „Gourmand“ ist jemand, der gern isst. Kinder können sich den Teller teilen!"], ["resto", "🍮", "Crème caramel", "Caramel custard", "Karamellpudding", "krem ka-ra-MEL", "krämm ka-ra-MÄL", "A wobbly custard flipped upside-down so the golden caramel runs down the sides. Watch it jiggle.", "Ein wackeliger Pudding, kopfüber gestürzt, sodass das goldene Karamell an den Seiten herunterläuft. Schau, wie er wackelt!"], ["snack", "🥞", "Crêpe sucrée", "Sweet crêpe", "Süßer Crêpe", "krep soo-KRAY", "kräpp sü-KRE", "Thin pancakes from Brittany, filled with sugar, jam or chocolate spread. On February 2 (La Chandeleur) people flip crêpes in the pan with a coin in the other hand for good luck.", "Dünne Pfannkuchen aus der Bretagne, gefüllt mit Zucker, Marmelade oder Schokocreme. Am 2. Februar (La Chandeleur) wendet man sie mit einer Münze in der anderen Hand, das bringt Glück."], ["snack", "🧇", "Gaufre", "Waffle", "Waffel", "GOH-fruh", "GO-fr", "Street stands sell warm waffles dusted with sugar or topped with chocolate and whipped cream. Follow the sweet smell!", "An Straßenständen gibt es warme Waffeln mit Puderzucker oder mit Schokolade und Sahne. Folge einfach dem süßen Duft!"], ["snack", "🍭", "Barbe à papa", "Cotton candy", "Zuckerwatte", "barb ah pah-PAH", "barb a pa-PA", "It literally means “Daddy’s beard.” The fluffy pink swirls do look like a big fuzzy beard! Find it at fairs and fêtes.", "Wörtlich bedeutet es „Papas Bart“. Die flauschigen rosa Wirbel sehen wirklich aus wie ein großer Bart! Du findest sie auf Jahrmärkten und Festen."], ["snack", "🍎", "Pomme d’amour", "Candy apple", "Liebesapfel", "pom da-MOOR", "pomm da-MUR", "“Apple of love” is a shiny red candied apple on a stick, a classic treat at French fairgrounds.", "Der „Liebesapfel“ ist ein glänzender roter Apfel mit Zuckerglasur am Stiel, ein Klassiker auf französischen Jahrmärkten."], ["snack", "🥪", "Jambon-beurre", "Ham and butter sandwich", "Schinken-Butter-Baguette", "zhahm-BOHN burr", "schang-BONG bör", "Just a baguette, ham and butter, yet it is one of the most popular sandwiches in France.", "Nur Baguette, Schinken und Butter, und doch eines der beliebtesten Sandwiches Frankreichs."], ["snack", "🧀", "Croque-monsieur", "Toasted ham and cheese", "Überbackenes Schinken-Käse-Sandwich", "krok muh-SYUH", "krock mö-ßJÖ", "“Croque” means crunch. Add a fried egg on top and it becomes a croque-madame, because the egg looks like a lady’s hat.", "„Croque“ bedeutet „knusprig“. Kommt ein Spiegelei obendrauf, heißt es Croque-Madame, weil das Ei wie ein Damenhut aussieht."], ["snack", "🍟", "Frites", "French fries", "Pommes frites", "freet", "fritt", "Fries are served with many meals, especially steak-frites. In France they are simply called “frites,” which means “fried.”", "Pommes gibt es zu vielen Gerichten, vor allem zu „Steak-Frites“. Auf Französisch heißen sie einfach „frites“, das bedeutet „frittiert“."], ["snack", "🐮", "La Vache qui rit", "The Laughing Cow cheese", "Die lachende Kuh (Schmelzkäse)", "la vash kee ree", "la wasch ki ri", "Creamy cheese triangles in a round box with a smiling cow wearing earrings. Born in France in 1921 and loved by lunchboxes everywhere.", "Cremige Käseecken in einer runden Schachtel mit einer lächelnden Kuh mit Ohrringen. 1921 in Frankreich erfunden und in vielen Brotdosen zu Hause."], ["snack", "🍞", "Tartine", "Bread with butter and jam", "Brot mit Butter und Marmelade", "tar-TEEN", "tar-TIN", "A slice of baguette spread with butter, jam or chocolate. Tartiner means “to spread,” and it is a classic goûter.", "Eine Scheibe Baguette mit Butter, Marmelade oder Schokolade. „Tartiner“ heißt „bestreichen“, und es ist ein klassischer Goûter."], ["snack", "🧀", "Plateau de fromages", "Cheese plate", "Käseplatte", "pla-TOH duh fro-MAHZH", "pla-TO de fro-MASCH", "France makes well over a thousand kinds of cheese. Try one mild one and one that smells a bit wild!", "Frankreich stellt weit über tausend Käsesorten her. Probiere einen milden und einen, der ein bisschen wild riecht!"], ["conf", "🍓", "Fraise Tagada", "Strawberry candy", "Erdbeerbonbon", "frez ta-ga-DA", "fräs ta-ga-DA", "Squishy pink strawberry-shaped candy covered in sugar, a French kid favorite from the Haribo company.", "Weiche rosa Süßigkeit in Erdbeerform mit Zuckerüberzug, ein Liebling französischer Kinder von der Firma Haribo."], ["conf", "😂", "Carambar", "Caramel bar with jokes", "Karamellriegel mit Witzen", "ka-rahm-BAR", "ka-ram-BAR", "A chewy caramel bar since 1954. Every wrapper hides a silly joke, so read it out loud to your family!", "Ein zäher Karamellriegel seit 1954. Auf jeder Verpackung steht ein alberner Witz, also lies ihn deiner Familie laut vor!"], ["conf", "🌰", "Nougat de Montélimar", "Nougat", "Weißer Nougat aus Montélimar", "noo-GAH duh mon-tay-lee-MAR", "nu-GA de mong-te-li-MAR", "A chewy white candy full of almonds and honey. It comes from the town of Montélimar in southern France.", "Ein zähes weißes Konfekt voller Mandeln und Honig. Es kommt aus der Stadt Montélimar in Südfrankreich."], ["conf", "🔺", "Berlingot", "Striped hard candy", "Gestreiftes Hartbonbon", "bair-lan-GOH", "bär-läng-GO", "A pyramid-shaped hard candy with colorful stripes. The town of Carpentras in Provence is famous for its mint ones.", "Ein pyramidenförmiges Hartbonbon mit bunten Streifen. Die Stadt Carpentras in der Provence ist berühmt für die Minz-Sorte."], ["conf", "💎", "Calisson d’Aix", "Almond-melon candy from Aix", "Mandel-Melonen-Konfekt aus Aix", "ka-lee-SOHN dex", "ka-li-ßONG dekß", "A diamond-shaped sweet made of almonds and candied melon with a smooth white icing. It comes from Aix-en-Provence.", "Eine rautenförmige Süßigkeit aus Mandeln und kandierter Melone mit glatter weißer Glasur. Sie stammt aus Aix-en-Provence."], ["conf", "🍬", "Bêtises de Cambrai", "Cambrai mints", "Minzbonbons aus Cambrai", "bay-TEEZ duh kahm-BRAY", "be-TIS de kang-BRE", "Bêtises means “blunders” or “silly mistakes.” A legend says they were born when an apprentice candymaker made a mistake in his recipe.", "„Bêtises“ bedeutet „Dummheiten“ oder „Missgeschicke“. Einer Legende nach entstanden sie, als ein Lehrling beim Rezept einen Fehler machte."], ["conf", "🍄", "Truffe au chocolat", "Chocolate truffle", "Schokoladentrüffel", "truf oh sho-ko-LAH", "trüf o scho-ko-LA", "Named after the truffle mushroom because the bumpy, cocoa-dusted candy looks like one. It melts in your mouth.", "Benannt nach dem Trüffelpilz, weil die kleine, kakaobestäubte Praline wie einer aussieht. Sie zergeht auf der Zunge."], ["conf", "🌰", "Marron glacé", "Candied chestnut", "Kandierte Esskastanie", "ma-ROHN gla-SAY", "ma-RONG gla-ßE", "A chestnut cooked slowly in sugar syrup until it is soft and sweet. A fancy treat, especially at Christmas.", "Eine Esskastanie, langsam in Zuckersirup gekocht, bis sie weich und süß ist. Eine feine Delikatesse, besonders zu Weihnachten."], ["conf", "🍇", "Pâte de fruits", "Fruit jelly candy", "Fruchtgelee-Konfekt", "paht duh FRWEE", "pat de FRÜI", "Squares of soft fruit jelly coated in sugar. Pick a favorite flavor: raspberry, apricot, pear or blackcurrant.", "Würfel aus weichem Fruchtgelee mit Zuckerüberzug. Such dir eine Lieblingssorte aus: Himbeere, Aprikose, Birne oder schwarze Johannisbeere."], ["conf", "☕", "Chocolat chaud", "Hot chocolate", "Heiße Schokolade", "sho-ko-LAH sho", "scho-ko-LA scho", "In French cafés hot chocolate is often so thick that your spoon almost stands up in it. Dunk a croissant!", "In französischen Cafés ist heiße Schokolade oft so dick, dass der Löffel fast darin steht. Tunk ein Croissant hinein!"], ["conf", "🍋", "Citron pressé", "Fresh-squeezed lemonade", "Frisch gepresste Zitronenlimonade", "see-TROHN preh-SAY", "ßi-TRONG pre-ßE", "You get a glass of lemon juice, a pitcher of water and sugar. Mix it yourself to taste. Pressé means “squeezed.”", "Du bekommst ein Glas Zitronensaft, eine Karaffe Wasser und Zucker. Mische es selbst nach Geschmack. „Pressé“ heißt „gepresst“."], ["conf", "🥤", "Diabolo menthe", "Mint lemonade", "Pfefferminz-Limo", "dee-ah-bo-LOH mont", "di-a-bo-LO mangt", "Lemonade with bright green mint syrup, the classic kids’ café drink. A diabolo is also a juggling toy that spins on a string.", "Limonade mit knallgrünem Minzsirup, das klassische Café-Getränk für Kinder. Ein „Diabolo“ ist auch ein Jonglierspielzeug, das an einer Schnur wirbelt."], ["conf", "🍨", "Glace", "Ice cream (a scoop)", "Eis (eine Kugel)", "glass", "glaß", "Glace means both “ice” and “ice cream.” Order une boule (one ball) or deux boules. In Paris, the island Île Saint-Louis is famous for its ice cream shop Berthillon.", "„Glace“ bedeutet sowohl „Eis“ als auch „Speiseeis“. Bestelle „une boule“ (eine Kugel) oder „deux boules“. In Paris ist die Île Saint-Louis berühmt für die Eisdiele Berthillon."]];
@@ -123,6 +150,85 @@ var KEY="fr-treats-hunt-v1", done={};
 try{ var s0=localStorage.getItem(KEY); if(s0) done=JSON.parse(s0)||{}; }catch(e){ done={}; }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(done)); }catch(e){} }
 var filter="all", main=document.getElementById("main"), chips=document.getElementById("chips");
+
+function showAuth(){
+  document.getElementById("auth-screen").classList.remove("hidden");
+  document.getElementById("app-shell").classList.add("hidden");
+}
+
+function showApp(){
+  document.getElementById("auth-screen").classList.add("hidden");
+  document.getElementById("app-shell").classList.remove("hidden");
+}
+
+function checkAuth(){
+  return fetch("/api/auth", { method: "GET", credentials: "same-origin" })
+    .then(function(response){
+      if(!response.ok){
+        return { authenticated: false };
+      }
+      return response.json();
+    })
+    .then(function(data){
+      if(data && data.authenticated){
+        showApp();
+        return true;
+      }
+      showAuth();
+      return false;
+    })
+    .catch(function(){
+      showAuth();
+      return false;
+    });
+}
+
+function attemptAuth(password){
+  return fetch("/api/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: password }),
+    credentials: "same-origin"
+  }).then(function(response){
+    return response.json().then(function(data){
+      if(!response.ok || !data || !data.authenticated){
+        throw new Error(data && data.error ? data.error : "Incorrect password.");
+      }
+      return data;
+    });
+  }).then(function(){
+    showApp();
+  });
+}
+
+function initAuth(){
+  var form=document.getElementById("auth-form");
+  var input=document.getElementById("password-input");
+  var error=document.getElementById("auth-error");
+
+  checkAuth().then(function(isValid){
+    if(isValid){
+      return;
+    }
+
+    form.addEventListener("submit", function(ev){
+      ev.preventDefault();
+      error.textContent="";
+      var password = input.value.trim();
+      if(!password){
+        error.textContent="Please enter the password.";
+        return;
+      }
+      attemptAuth(password).catch(function(err){
+        error.textContent=err && err.message ? err.message : "Incorrect password.";
+        input.value="";
+        input.focus();
+      });
+    });
+    showAuth();
+  });
+}
+
 function esc(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
 function photoUrl(it){ return "https://www.google.com/search?tbm=isch&q="+encodeURIComponent(it.fr+UI[lang].q+it.en.replace(/[“”„()]/g,"")); }
 
@@ -187,6 +293,7 @@ function setLang(l){ lang=l; try{ localStorage.setItem("fr-treats-lang",l); }cat
 document.getElementById("b-en").addEventListener("click",function(){ setLang("en"); });
 document.getElementById("b-de").addEventListener("click",function(){ setLang("de"); });
 document.getElementById("reset").addEventListener("click",function(){ done={}; save(); build(); update(); });
+initAuth();
 applyLang();
 </script>
 </body>
