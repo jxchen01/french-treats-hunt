@@ -148,7 +148,25 @@ var lang = (function(){ try{ var s=localStorage.getItem("fr-treats-lang"); if(s=
   return (navigator.language||"en").toLowerCase().indexOf("de")===0 ? "de" : "en"; })();
 var KEY="fr-treats-hunt-v1", done={};
 try{ var s0=localStorage.getItem(KEY); if(s0) done=JSON.parse(s0)||{}; }catch(e){ done={}; }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(done)); }catch(e){} }
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(done)); }catch(e){}
+  fetch("/api/progress", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ done: done })
+  }).catch(function(){});
+}
+
+function loadSharedProgress(){
+  return fetch("/api/progress", { method: "GET", credentials: "same-origin" })
+    .then(function(response){
+      if(!response.ok){ return {}; }
+      return response.json().then(function(data){ return data && data.done ? data.done : {}; });
+    })
+    .catch(function(){ return {}; });
+}
+
 var filter="all", main=document.getElementById("main"), chips=document.getElementById("chips");
 
 function showAuth(){
@@ -208,7 +226,11 @@ function initAuth(){
 
   checkAuth().then(function(isValid){
     if(isValid){
-      return;
+      return loadSharedProgress().then(function(progress){
+        done = progress || {};
+        applyLang();
+        return true;
+      });
     }
 
     form.addEventListener("submit", function(ev){
@@ -219,11 +241,21 @@ function initAuth(){
         error.textContent="Please enter the password.";
         return;
       }
-      attemptAuth(password).catch(function(err){
-        error.textContent=err && err.message ? err.message : "Incorrect password.";
-        input.value="";
-        input.focus();
-      });
+      attemptAuth(password)
+        .then(function(){
+          return loadSharedProgress();
+        })
+        .then(function(progress){
+          done = progress || {};
+          save();
+          build();
+          update();
+        })
+        .catch(function(err){
+          error.textContent=err && err.message ? err.message : "Incorrect password.";
+          input.value="";
+          input.focus();
+        });
     });
     showAuth();
   });
@@ -293,8 +325,11 @@ function setLang(l){ lang=l; try{ localStorage.setItem("fr-treats-lang",l); }cat
 document.getElementById("b-en").addEventListener("click",function(){ setLang("en"); });
 document.getElementById("b-de").addEventListener("click",function(){ setLang("de"); });
 document.getElementById("reset").addEventListener("click",function(){ done={}; save(); build(); update(); });
-initAuth();
-applyLang();
+loadSharedProgress().then(function(progress){
+  done = progress || {};
+  initAuth();
+  applyLang();
+});
 </script>
 </body>
 </html>

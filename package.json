@@ -1,0 +1,19 @@
+{
+  "name": "french-treats-hunt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://localhost:26831/jxchen01/french-treats-hunt"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/kv": "^3.0.0"
+  }
+}
