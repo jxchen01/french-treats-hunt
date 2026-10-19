@@ -1,8 +1,22 @@
 const crypto = require('crypto');
-const { kv } = require('@vercel/kv');
+const { Redis } = require('@upstash/redis');
 
 const STORAGE_KEY = 'fr-treats-progress';
 const memoryState = globalThis.__frTreatsProgress || (globalThis.__frTreatsProgress = {});
+
+function getRedisClient() {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_TOKEN;
+
+  if (!url || !token) {
+    return null;
+  }
+
+  return new Redis({
+    url,
+    token,
+  });
+}
 
 function getPassword() {
   return (process.env.FR_TREATS_PASSWORD || '').trim();
@@ -32,13 +46,18 @@ function signedSessionValue() {
 }
 
 async function loadProgress() {
-  try {
-    const value = await kv.get(STORAGE_KEY);
-    if (value && typeof value === 'object') {
-      return value;
+  const redis = getRedisClient();
+
+  if (redis) {
+    try {
+      const value = await redis.get(STORAGE_KEY);
+      if (value && typeof value === 'object') {
+        memoryState[STORAGE_KEY] = value;
+        return value;
+      }
+    } catch (error) {
+      // fall back to the in-memory store for local or non-Vercel runs
     }
-  } catch (error) {
-    // fall back to the in-memory store for local or non-Vercel runs
   }
 
   return memoryState[STORAGE_KEY] || {};
@@ -46,11 +65,14 @@ async function loadProgress() {
 
 async function saveProgress(progress) {
   const nextValue = progress && typeof progress === 'object' ? progress : {};
+  const redis = getRedisClient();
 
-  try {
-    await kv.set(STORAGE_KEY, nextValue);
-  } catch (error) {
-    memoryState[STORAGE_KEY] = nextValue;
+  if (redis) {
+    try {
+      await redis.set(STORAGE_KEY, nextValue);
+    } catch (error) {
+      memoryState[STORAGE_KEY] = nextValue;
+    }
   }
 
   memoryState[STORAGE_KEY] = nextValue;
