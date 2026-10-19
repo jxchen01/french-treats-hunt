@@ -150,21 +150,16 @@ var KEY="fr-treats-hunt-v1", done={};
 try{ var s0=localStorage.getItem(KEY); if(s0) done=JSON.parse(s0)||{}; }catch(e){ done={}; }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(done)); }catch(e){}
-  fetch("/api/progress", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    credentials: "same-origin",
-    body: JSON.stringify({ done: done })
-  }).catch(function(){});
 }
 
 function loadSharedProgress(){
-  return fetch("/api/progress", { method: "GET", credentials: "same-origin" })
-    .then(function(response){
-      if(!response.ok){ return {}; }
-      return response.json().then(function(data){ return data && data.done ? data.done : {}; });
-    })
-    .catch(function(){ return {}; });
+  try{
+    var saved = localStorage.getItem(KEY);
+    if(saved){
+      return Promise.resolve(JSON.parse(saved) || {});
+    }
+  }catch(e){}
+  return Promise.resolve({});
 }
 
 var filter="all", main=document.getElementById("main"), chips=document.getElementById("chips");
